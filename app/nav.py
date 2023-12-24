@@ -66,7 +66,6 @@ async def form_straight_line(id: int, end_x: int, end_y: int):
 async def calculate_speed(distance: int, ship_stat: dict):
     current_speed = ship_stat['speed']
     while distance > 0:
-        distance = distance - current_speed
         brake_length = 0
         speed = current_speed
         print(current_speed)
@@ -93,5 +92,6 @@ async def calculate_speed(distance: int, ship_stat: dict):
                     [{'id': ship_stat['id'], 'changeSpeed': ship_stat['maxSpeed']-current_speed}]})
                 await asyncio.sleep(3)
                 current_speed = ship_stat['maxSpeed']
+        distance = distance - current_speed
     else:
         await dats_api.ship_command({'ships': [{'id': ship_stat['id'], 'changeSpeed': -current_speed}]})
