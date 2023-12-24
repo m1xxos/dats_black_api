@@ -1,5 +1,5 @@
 from app import dats_api, models
-
+from app.nav import form_straight_line
 import time
 
 import requests
@@ -118,3 +118,8 @@ async def add_queue(ship_command_json: models.ShipCommand):
 async def print_queue():
     print(ships_commands)
     return ships_commands
+
+@app.post('/navigate')
+async def navigate(ship_id: int, x: int, y: int):
+    await form_straight_line(ship_id, x, y)
+    return 'Пошло-поехало'
