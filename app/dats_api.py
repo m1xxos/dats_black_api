@@ -21,7 +21,7 @@ async def long_scan(x, y):
 
 async def ship_command(command_array):
     method_addr = base_url + 'shipCommand'
-    r = requests.post(method_addr, headers=base_headers, data=command_array)
+    r = requests.post(method_addr, headers=base_headers, json=command_array)
     return r.json()
 
 

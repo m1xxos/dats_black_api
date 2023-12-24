@@ -1,4 +1,11 @@
+import concurrent
+
 from app import dats_api, models
+<<<<<<< HEAD
+=======
+
+import asyncio
+>>>>>>> 7da425419f2f985a6bcdade4263d233be897c673
 import time
 
 import requests
@@ -45,9 +52,6 @@ async def scan():
 @app.websocket("/scanWs")
 async def websocket_endpoint(websocket: WebSocket):
     await websocket.accept()
-    json_data = await websocket.receive_json()
-
-
 
     tick = 0
     while True:
@@ -58,22 +62,6 @@ async def websocket_endpoint(websocket: WebSocket):
             await websocket.send_json(data)
 
         time.sleep(1)
-
-
-@app.websocket("/sendQueue")
-async def websocket_queue_endpoint(websocket: WebSocket):
-    await websocket.accept()
-    data = {'ships': []}
-    while True:
-        for ships_command in ships_commands:
-            print(ships_commands[ships_command])
-            if ships_commands[ships_command]['size'] > 0:
-                command = ships_commands[ships_command]['queue'].pop().model_dump()
-                data['ships'].append(command)
-                ships_commands[ships_command]['size'] -= 1
-        print(data)
-        await websocket.send_json(await dats_api.ship_command(data))
-        time.sleep(3)
 
 
 @app.post("/longScan")
@@ -105,6 +93,20 @@ async def get_map():
     return area_map
 
 
+@app.get("/shipsUpdate")
+async def update_ship():
+    try:
+        ships = await dats_api.scan()
+        for ship in ships['scan']['myShips']:
+            ship_ids.append(ship['id'])
+        for ship_id in ship_ids:
+            ships_commands[ship_id] = {}
+            ships_commands[ship_id]['queue'] = []
+            ships_commands[ship_id]['size'] = 0
+    except:
+        pass
+
+
 @app.post("/addQueue")
 async def add_queue(ship_command_json: models.ShipCommand):
     for ship in ship_command_json.ships:
@@ -116,3 +118,29 @@ async def add_queue(ship_command_json: models.ShipCommand):
 async def print_queue():
     print(ships_commands)
     return ships_commands
+
+
+async def websocket_queue_endpoint():
+    while True:
+        data = {'ships': []}
+        for ships_command in ships_commands:
+            if int(ships_commands[ships_command]['size']) > 0:
+                command = ships_commands[ships_command]['queue'].pop().model_dump()
+                data['ships'].append(command)
+                ships_commands[ships_command]['size'] -= 1
+        print(data)
+        print(await dats_api.ship_command(data))
+        await asyncio.sleep(3)
+
+
+@app.get('/startQueue')
+async def start_queue():
+    loop = asyncio.get_event_loop()
+    with concurrent.futures.ProcessPoolExecutor() as pool:
+        result = await loop.run_in_executor(pool, await websocket_queue_endpoint())
+
+
+@app.get('/stopQueue')
+async def stop_queue():
+    loop = asyncio.get_event_loop()
+    loop.close()
