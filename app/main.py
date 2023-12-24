@@ -1,5 +1,4 @@
 from app import dats_api, models
-
 import time
 
 import requests
@@ -18,7 +17,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
 
 @app.on_event("startup")
 async def get_ships_id():
@@ -96,13 +94,13 @@ async def get_map():
     for island in island_map['islands']:
         start_x = island['start'][0]
         start_y = island['start'][1]
+        maxWidth = 0
+        currentIsland = {'x': start_x, 'y': start_y, 'height': len(island['map']), 'width': 0}
         for y in island['map']:
-            for x in y:
-                if x == 1:
-                    islands_list.append({'x': start_x, 'y': start_y})
-                start_x += 1
-            start_y += 1
-            start_x = island['start'][0]
+            if len(y) > maxWidth:
+                maxWidth = len(y)
+        currentIsland['width'] = maxWidth
+        islands_list.append(currentIsland)
     area_map['island'] = islands_list
     return area_map
 
