@@ -1,14 +1,11 @@
-import concurrent
-
 from app import dats_api, models
-<<<<<<< HEAD
-=======
+from app.nav import form_straight_line
 
+import concurrent
 import asyncio
->>>>>>> 7da425419f2f985a6bcdade4263d233be897c673
 import time
-
 import requests
+
 from fastapi import FastAPI, WebSocket
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -106,6 +103,12 @@ async def update_ship():
     except:
         pass
 
+      
+@app.post('/navigate')
+async def navigate(ship_id: int, x: int, y: int):
+    await form_straight_line(ship_id, x, y)
+    return 'Пошло-поехало'
+      
 
 @app.post("/addQueue")
 async def add_queue(ship_command_json: models.ShipCommand):
@@ -119,7 +122,7 @@ async def print_queue():
     print(ships_commands)
     return ships_commands
 
-
+  
 async def websocket_queue_endpoint():
     while True:
         data = {'ships': []}
